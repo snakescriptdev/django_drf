@@ -1,111 +1,158 @@
-# DJANGO REST FRAMEWORK - API (DRF-API)
-Django Rest Framework - API (DRF) is a Django application that provides a set of API endpoints for Django Rest Framework (DRF) applications.
+# Django Serializers
+## What is a Serializer?
+A serializer is a class that provides a way to convert data into a format that can be easily stored or transmitted. It does so by translating the data into a format that is easy to read and understand by other systems. In Django, serializers are used to convert querysets or model instances into native Python datatypes that can then be easily rendered into JSON, XML or other content types. Serializers also provide deserialization, allowing parsed data to be converted back into complex types, after first validating the incoming data.
 
-## Installation
-Install DRF using pip:
-```bash
-pip install djangorestframework
-```
+## Why use Serializers?
+We use serializers to convert complex data such as querysets and model instances to native Python datatypes that can then be easily rendered into JSON, XML or other content types. Serializers also provide deserialization, allowing parsed data to be converted back into complex types, after first validating the incoming data.
 
-### External Dependencies
-```bash
-pip install markdown     # Markdown support for the browsable API.
+## Type of Serializers
+There are two types of serializers in Django REST Framework: ModelSerializer and Serializer. ModelSerializer is a shortcut to create serializer classes for Django models. It will automatically generate a set of fields for you, based on the model.
 
-pip install django-filter  # Filtering support
-```
+### ModelSerializer
+ModelSerializer is a shortcut to create serializer classes for Django models. It will automatically generate a set of fields for you, based on the model.
 
-## Quickstart
-1. Add "rest_framework" to your INSTALLED_APPS setting like this:
 ```python
-INSTALLED_APPS = [
-    ...
-    'rest_framework',
-]
-```
-
-2. Include the DRF-API URLconf in your project urls.py like this:
-```python
-path('api-auth/', include('rest_framework.urls')),
-```
-
-3. Run `python manage.py migrate` to create the DRF-API models.
-
-4. Start the development server and visit http://127.0.0.1:8000
-
-
-## New Application with drf and models
-
-1. Create a new application
-```bash
-python manage.py startapp <app_name>
-```
-
-2. Add the new application to the INSTALLED_APPS setting like this:
-```python
-INSTALLED_APPS = [
-    ...
-    '<app_name>',
-]
-```
-
-3. Create a new model in the new application
-```python
-from django.db import models
-
-class <ModelName>(models.Model):
-    <field_name> = models.<field_type>(<field_options>)
-```
-run makemiagration and migrate
-
-4. Create a new serializer in the new application
-```python
-# serializers.py
-
 from rest_framework import serializers
-from .models import <ModelName>
 
-class <ModelName>Serializer(serializers.ModelSerializer):
+class AccountSerializer(serializers.ModelSerializer):
     class Meta:
-        model = <ModelName>
-        fields = '__all__'
+        model = Account
+        fields = ['id', 'account_name', 'users', 'created'] 
+
+        #fields = '__all__' #all fielfs of the model
+        #exclude = ['created'] #exclude fields of the model
 ```
 
-5. Create a new view in the new application
+### Serializer
+The Serializer class is the one that gives you the most control, but requires the most amount of work. You have to define all the fields yourself. It is useful if you want to completely customize the resulting response, or if you want to support non-model data structures.
+
 ```python
-# views.py
+from rest_framework import serializers
 
-from rest_framework import viewsets
-from .models import <ModelName>
-from .serializers import <ModelName>Serializer
-
-class <ModelName>ViewSet(viewsets.ModelViewSet):
-    queryset = <ModelName>.objects.all()
-    serializer_class = <ModelName>Serializer
+class AccountSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    account_name = serializers.CharField(required=True, allow_blank=False, max_length=100)
+    users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
 ```
 
-6. Add the new view to the urls.py
+## Serializing and deserializing data
+### Serializing objects
+```python
+serializer = AccountSerializer(account)
+serializer.data
+# {'id': 1, 'account_name': 'My Account', 'users': [1, 2], 'created': '2019-01-01T00:00:00Z'}
+```
+
+### Deserializing objects
+```python
+serializer = AccountSerializer(data=data)
+serializer.is_valid()
+# True
+serializer.validated_data
+# OrderedDict([('account_name', 'My Account'), ('users', [1, 2])])
+serializer.save()
+# <Account: Account object (1)>
+```
+
+## Validation
+### Validation on fields
+```python
+class AccountSerializer(serializers.Serializer):
+    account_name = serializers.CharField(max_length=100)
+    users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
+
+    def validate_account_name(self, value):
+        """
+        Check that the blog post is about Django.
+        """
+        if 'django' not in value.lower():
+            raise serializers.ValidationError("Blog post is not about Django")
+        return value
+```
+
+### Validation on Serializer
+```python
+class AccountSerializer(serializers.Serializer):
+    account_name = serializers.CharField(max_length=100)
+    users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all())
+
+    def validate(self, data):
+        """
+        Check that start is before finish.
+        """
+        if data['account_name'] != 'My Account':
+            raise serializers.ValidationError("Account name is not valid")
+        return data
+```
+
+##  Handling related models and nested serializers
+### Nested relationships
+```python
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
+
+class AccountSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Account
+        fields = ['id', 'account_name', 'users', 'created']
+```
+
+### Writable nested serializers
 ```python
 
-from django.urls import path, include
-from rest_framework import routers
-from .views import <ModelName>ViewSet
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
 
-router = routers.DefaultRouter()
-router.register('<model_name>', <ModelName>ViewSet)
+class AccountSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True)
 
-urlpatterns = [
-    path('', include(router.urls)),
-]
+    class Meta:
+        model = Account
+        fields = ['id', 'account_name', 'users', 'created']
+
+    def create(self, validated_data):
+        users_data = validated_data.pop('users')
+        account = Account.objects.create(**validated_data)
+        for user_data in users_data:
+            User.objects.create(account=account, **user_data)
+        return account
 ```
 
-7. Add the new urls to the project urls.py
+## Hyperlinked relationships
+
+### HyperlinkedModelSerializer
 ```python
-from django.urls import path, include
+class AccountSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['url', 'account_name', 'users', 'created']
+```
 
-urlpatterns = [
-    ...
-    path('<app_name>/', include('<app_name>.urls')),
-]
+### HyperlinkedRelatedField
+```python
+class AccountSerializer(serializers.ModelSerializer):
+    users = serializers.HyperlinkedRelatedField(many=True, view_name='user-detail', read_only=True)
+
+    class Meta:
+        model = Account
+        fields = ['id', 'account_name', 'users', 'created']
 ```
 
 
+## Relationships and hyperlinked APIs
+### HyperlinkedIdentityField
+```python
+class AccountSerializer(serializers.ModelSerializer):
+    users = serializers.HyperlinkedRelatedField(many=True, view_name='user-detail', read_only=True)
+    account_url = serializers.HyperlinkedIdentityField(view_name='account-detail')
+
+    class Meta:
+        model = Account
+        fields = ['id', 'account_name', 'users', 'created', 'account_url']
+```

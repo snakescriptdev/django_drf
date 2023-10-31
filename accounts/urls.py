@@ -5,6 +5,9 @@ from accounts import views
 router = routers.DefaultRouter()
 router.register('student', views.StudentViewSet)
 
+
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('stud/', views.StudentAPIView.as_view()),
+
 ]
