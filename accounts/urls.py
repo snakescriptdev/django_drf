@@ -3,11 +3,14 @@ from rest_framework import routers
 from accounts import views
 
 router = routers.DefaultRouter()
-router.register('student', views.StudentViewSet)
+router.register('category', views.CategoryViewSet)
+router.register('tags', views.TagsViewSet)
+router.register('blogpost', views.BlogPostViewSet)
+
 
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('stud/', views.StudentAPIView.as_view()),
+
 
 ]
