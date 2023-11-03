@@ -1,6 +1,11 @@
-from rest_framework import viewsets
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from rest_framework import viewsets, status
 from django.shortcuts import render
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from rest_framework.authtoken.models import Token
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Category, Tags, BlogPost
@@ -14,6 +19,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class TagsViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication,BasicAuthentication,TokenAuthentication]
+    permission_classes = [AllowAny]
     queryset = Tags.objects.all()
     serializer_class = TagsSerializer
 
@@ -21,6 +28,42 @@ class TagsViewSet(viewsets.ModelViewSet):
 class BlogPostViewSet(viewsets.ModelViewSet):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
+
+
+class UserTokenApi(APIView):
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        content = {'message': 'Hello, World!'}
+        return Response(content)
+
+    def post(self, request):
+        try:
+            username = request.data['username']
+            password = request.data['password']
+        except:
+            return Response({'error': 'Please provide both username and password'})
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key})
+        else:
+            return Response({'error': 'Invalid Credentials'})
+
+
+
+
+
+
+    # def post(self, request):
+    #
+    #     user = User.objects.get(id=request.user.id)
+    #     token, created = Token.objects.get_or_create(user=user)
+    #     return Response({'token': token.key})
+
+
+
 
 
 

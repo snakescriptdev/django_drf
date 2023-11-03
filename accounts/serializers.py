@@ -6,7 +6,7 @@ from .models import Category, Tags, BlogPost
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
+        fields = ('username', 'password')
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

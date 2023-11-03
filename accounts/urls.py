@@ -11,6 +11,7 @@ router.register('blogpost', views.BlogPostViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('user-token/', views.UserTokenApi.as_view(), name='user-token'),
 
 
 ]
