@@ -15,6 +15,12 @@ from .filters import BlogPostFilter
 from .models import Category, Tags, BlogPost
 from .serializers import CategorySerializer, TagsSerializer, BlogPostSerializer, UserSerializer
 
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
 # Create your views here.
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -32,9 +38,9 @@ class TagsViewSet(viewsets.ModelViewSet):
 class BlogPostViewSet(viewsets.ModelViewSet):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = BlogPostFilter
-    pagination_class = LimitOffsetPagination
+    # filter_backends = [DjangoFilterBackend]
+    # filterset_class = BlogPostFilter
+    # pagination_class = LimitOffsetPagination
 
 
 

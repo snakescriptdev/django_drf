@@ -6,6 +6,7 @@ router = routers.DefaultRouter()
 router.register('category', views.CategoryViewSet)
 router.register('tags', views.TagsViewSet)
 router.register('blogpost', views.BlogPostViewSet)
+router.register('user', views.UserViewSet)
 
 
 
