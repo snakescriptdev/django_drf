@@ -38,6 +38,8 @@ class TagsViewSet(viewsets.ModelViewSet):
 class BlogPostViewSet(viewsets.ModelViewSet):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
+    permission_classes = [IsAuthenticated]
+
     # filter_backends = [DjangoFilterBackend]
     # filterset_class = BlogPostFilter
     # pagination_class = LimitOffsetPagination
@@ -45,8 +47,8 @@ class BlogPostViewSet(viewsets.ModelViewSet):
 
 
 class UserTokenApi(APIView):
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication,TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         content = {'message': 'Hello, World!'}

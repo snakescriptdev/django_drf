@@ -34,6 +34,8 @@ class TagsSerializer(serializers.Serializer):
         instance.save()
         return instance
 
+
+
 class BlogPostSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='blogpost-detail', lookup_field='pk')
     author = serializers.ReadOnlyField(source='author.username')
@@ -48,7 +50,7 @@ class BlogPostSerializer(serializers.HyperlinkedModelSerializer):
     def to_representation(self, instance):
         response = super().to_representation(instance)
         response['author'] = instance.author.username
-        response['category'] = instance.category.name
+        response['category'] = Category.objects.filter(id=instance.category.id).values('name','id')
         response['tags'] = [tag.name for tag in instance.tags.all()]
         response['current_time'] = time.time()
         return response
