@@ -4,12 +4,12 @@ from .models import Category, Tags, BlogPost
 import time
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='pk', read_only=True)
+class UserSerializer(serializers.ModelSerializer):
+
 
     class Meta:
         model = User
-        fields = ('username', 'password','url')
+        fields = ('username', 'password')
         queryset = User.objects.all()
 
 
@@ -36,15 +36,24 @@ class TagsSerializer(serializers.Serializer):
 
 
 
-class BlogPostSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='blogpost-detail', lookup_field='pk')
-    author = serializers.ReadOnlyField(source='author.username')
-
-
+class BlogPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BlogPost
-        fields = ('id', 'title', 'body', 'author', 'created_at', 'updated_at', 'category', 'tags','url')
+        fields = ('id', 'title', 'body', 'author', 'created_at', 'updated_at', 'category', 'tags')
+        extra_kwargs = {'author': {'required': False}}
+
+    def create(self, validated_data):
+        author = self.context['request'].user
+        tags = validated_data.pop('tags')
+        blogpost = BlogPost.objects.create(author=author, **validated_data)
+        for tag in tags:
+            blogpost.tags.add(tag)
+
+        return blogpost
+
+
+
 
 
     def to_representation(self, instance):
