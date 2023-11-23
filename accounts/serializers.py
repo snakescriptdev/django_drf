@@ -44,13 +44,20 @@ class BlogPostSerializer(serializers.ModelSerializer):
         extra_kwargs = {'author': {'required': False}}
 
     def create(self, validated_data):
-        author = self.context['request'].user
-        tags = validated_data.pop('tags')
-        blogpost = BlogPost.objects.create(author=author, **validated_data)
-        for tag in tags:
-            blogpost.tags.add(tag)
+        try:
+            author = self.context['request'].user
+            try:
+                tags = validated_data.pop('tags')
+            except:
+                tags = []
 
-        return blogpost
+            blogpost = BlogPost.objects.create(author=author, **validated_data)
+            for tag in tags:
+                blogpost.tags.add(tag)
+
+            return blogpost
+        except:
+            raise serializers.ValidationError("Something went wrong")
 
 
 
@@ -59,8 +66,14 @@ class BlogPostSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         response = super().to_representation(instance)
         response['author'] = instance.author.username
-        response['category'] = Category.objects.filter(id=instance.category.id).values('name','id')
+        try:
+            response['category'] = Category.objects.filter(id=instance.category.id).values('name','id')
+        except:
+            response['category'] = None
         response['tags'] = [tag.name for tag in instance.tags.all()]
         response['current_time'] = time.time()
         return response
+
+
+
 

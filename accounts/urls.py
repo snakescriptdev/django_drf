@@ -13,6 +13,8 @@ router.register('user', views.UserViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('user-token/', views.UserTokenApi.as_view(), name='user-token'),
+    path('funblog/', views.blogpost, name='funblog'),
+    path('funblog/<int:pk>/', views.blogpost, name='funblogdetails')
 
 
 ]

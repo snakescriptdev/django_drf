@@ -5,6 +5,7 @@ from rest_framework import viewsets, status
 from django.shortcuts import render
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -43,6 +44,51 @@ class BlogPostViewSet(viewsets.ModelViewSet):
     # filter_backends = [DjangoFilterBackend]
     # filterset_class = BlogPostFilter
     # pagination_class = LimitOffsetPagination
+
+@permission_classes([IsAuthenticated])
+@api_view(['GET', 'POST','DELETE','PUT','PATCH'])
+def blogpost(request,pk=None):
+    if request.method == 'GET':
+        if pk:
+            blogpost = get_object_or_404(BlogPost, pk=pk)
+            serializer = BlogPostSerializer(blogpost)
+            return Response(serializer.data)
+        else:
+            blogpost = BlogPost.objects.all()
+            serializer = BlogPostSerializer(blogpost, many=True)
+            return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = BlogPostSerializer(data=request.data,context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        blogpost = get_object_or_404(BlogPost, pk=pk)
+        blogpost.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    elif request.method == 'PUT':
+        blogpost = get_object_or_404(BlogPost, pk=pk)
+        serializer = BlogPostSerializer(blogpost, data=request.data,context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'PATCH':
+        blogpost = get_object_or_404(BlogPost, pk=pk)
+        serializer = BlogPostSerializer(blogpost, data=request.data, partial=True,context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
