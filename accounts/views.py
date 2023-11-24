@@ -22,11 +22,15 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+
 # Create your views here.
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    swagger_schema = None
+
+
 
 
 class TagsViewSet(viewsets.ModelViewSet):

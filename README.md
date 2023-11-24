@@ -1,49 +1,49 @@
-# Relationships and Hyperlinked APIs
+# DjangoDRF Documentation
+In django drf documentation, we will learn how to create a rest api
 
-## Relationships
-
-In Django we use relationships to define how different parts of our application are connected to each other. We can use relationships to define a one-to-one, one-to-many, or many-to-many relationship between different parts of our application.
-
-
-## hyperlinking our API
-
-We can hyperlink our API by using HyperlinkedModelSerializer instead of ModelSerializer. This will give us hyperlinks to other endpoints instead of primary keys.
-
-## HyperlinkedModelSerializer
-
-HyperlinkedModelSerializer is similar to ModelSerializer except that it uses hyperlinks to represent relationships, rather than primary keys. This is useful for cases where you don't want to include the related data inline, and instead you want to simply provide a link to the associated data.
-
-## HyperlinkedIdentityField
-
-HyperlinkedIdentityField is similar to the ModelSerializer except that it uses hyperlinks to represent relationships, rather than primary keys. This is useful for cases where you don't want to include the related data inline, and instead you want to simply provide a link to the associated data.
-
-```python
-from rest_framework import serializers
-from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
-
-
-class SnippetSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='snippet-detail', read_only=True)
-    class Meta:
-        model = Snippet
-        fields = ['url', 'id', 'title', 'code', 'linenos', 'language', 'style']
-
+## Installation
+```bash
+pip install drf-yasg
 ```
 
-## HyperlinkedRelatedField
-
-HyperlinkedRelatedField is similar to the ModelSerializer except that it uses hyperlinks to represent relationships, rather than primary keys. This is useful for cases where you don't want to include the related data inline, and instead you want to simply provide a link to the associated data.
+## Usage
+```python
+INSTALLED_APPS = [
+    ...
+    'drf_yasg',
+    ...
+]
+```
 
 ```python
-from rest_framework import serializers
-from snippets.models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
+from django.contrib import admin
+from django.urls import path, include
+from rest_framework import routers
 
-class SnippetSerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.HyperlinkedRelatedField(
-        view_name='user-detail', read_only=True)
-    class Meta:
-        model = Snippet
-        fields = ['url', 'id', 'title', 'code', 'linenos', 'language', 'style', 'owner']
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
 
+schema_view = get_schema_view(
+    openapi.Info(
+        title="DjangoDRF API",
+        default_version='v1',
+        description="DjangoDRF API Documentation",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="vijaysharma@snakescript.com"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+
+urlpatterns = [
+   path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+   path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+   path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+   ...
+]
 ```
+
+
+https://drf-yasg.readthedocs.io/en/stable/index.html
+
